@@ -1,0 +1,27 @@
+{
+    "qb": {
+        "movie": "$YOUR_PATH/movie",
+        "tvshow": "$YOUR_PATH/tvshow",
+        "other": "$YOUR_PATH/other"
+    },
+    "qbee": {
+        "movie": "$YOUR_PATH/movie",
+        "tvshow": "$YOUR_PATH/tvshow",
+        "other": "$YOUR_PATH/other"
+    },
+    "aria2": {
+        "movie": "$YOUR_PATH/movie",
+        "tvshow": "$YOUR_PATH/tvshow",
+        "other": "$YOUR_PATH/other"
+    },
+    "alist": {
+        "movie": "$YOUR_PATH/movie",
+        "tvshow": "$YOUR_PATH/tvshow",
+        "other": "$YOUR_PATH/other"
+    },
+    "upload": {
+        "movie": "$YOUR_PATH/movie",
+        "tvshow": "$YOUR_PATH/tvshow",
+        "other": "$YOUR_PATH/other"
+    }
+}
