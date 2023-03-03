@@ -3,7 +3,7 @@ name = "mobius_flow"
 version = "0.1.0"
 description = "A Auto-Work-Flow for mobiusite"
 authors = ["Mobius <mobius@umbrao.com>"]
-license = "AGPL3.0"
+license = "AGPL-3.0"
 readme = "README.md"
 packages = [{include = "mobius_flow"}]
 
