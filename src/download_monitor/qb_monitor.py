@@ -5,18 +5,21 @@ import logging
 import qbittorrentapi
 
 class Qbittorrent:
-    """
-    Qb:监控Qbittorrent与QbittorrenEE的相关自动化流程
+    """Qbittorrent类:Qb与QbEE的相关自动化
     """
     
-    def __init__(self,host,username,secret):
-        """
-        通过webAPI连接指定客户端并检查可用性
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        secret: str
+        ):
+        """通过webAPI连接指定客户端并检查可用性
         
-        Arguments:
-            ``host``: 主机地址:端口
-            ``username``: 用户名
-            ``secret``: 密码
+        Args:
+            host (str): 主机地址:端口
+            username (str): 用户名
+            secret (str): 密码
         """
         self._client = qbittorrentapi.Client(
             host=host,
@@ -36,14 +39,18 @@ class Qbittorrent:
                 # raise qbittorrentapi.APIConnectionError
             time.sleep(10)
     
-    def copy_tag(self,category,src,dir):
-        """
-        检查torrent的tag是否存在``copied``,若不存在则复制源文件/文件夹至``dir``地址下
+    def copy_tag(
+        self,
+        category: str,
+        src: str,
+        dir: str
+        ):
+        """检查torrent的tag是否存在``copied``,若不存在则复制源文件/文件夹至``dir``地址下
         
-        Arguments:
-            ``category``: 类别名称
-            ``src``: 源路径
-            ``dir``: 目标路径
+        Args:
+            category (str): 类别名称
+            src (str): 源路径
+            dir (str): 目标路径
         """
         seeding_list=self._client.torrents_info(status_filter='completed',category=category)
         for torrent in seeding_list:
@@ -70,8 +77,7 @@ class Qbittorrent:
                     logging.error(f'源路径错误或源文件/文件夹不存在')
                 
     def del_nonetag(self):
-        """
-        删除没有torrent关联的tag,除了``copied``.
+        """删除没有torrent关联的tag,除了``copied``.
         """
         tags_list = self._client.torrents_tags(kwargs = [])
         

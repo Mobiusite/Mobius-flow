@@ -3,18 +3,19 @@ import logging
 from aria2p import API,Client,ClientException
 
 class aria2c:
-    """
-    Aira2C:监控aria2c的相关自动化流程.
+    """Aira2C类:监控aria2c通知并自动化
     """
     dir = 'src/'
-    def __init__(self,port,secret):
-        """
-        定义:
-            连接指定JSON-RPC格式的aria2远程服务器
+    def __init__(
+        self,
+        port: int,
+        secret: str = ""
+        ):
+        """连接指定JSON-RPC格式的aria2远程服务器
         
-        Arguments:
-            port: =int 指定监听端口
-            secret: =str 连接aria2所需的密码
+        Args:
+            port (int): 指定监听端口
+            secret (str): 连接aria2所需的密码
         """
         while True:
             try:
@@ -26,15 +27,16 @@ class aria2c:
                 )
                 break
             except ClientException:
-                logging.error(f"使用端口:{port}链接远程aria2失败,请检查密码,将于3秒后重试.")
-            time.sleep(3)
+                logging.error(f"使用端口:{port}链接远程aria2失败,请检查密码,将于5秒后重试.")
+            time.sleep(5)
 
-    def when_dl_compelete(self,callback):
-        """
-        定义:
-            监听文件下载完成(做种未完成)事件
+    def when_dl_compelete(
+        self,
+        callback
+        ):
+        """监听文件下载完成(做种未完成)事件
         
-        Arguments:
+        Args:
             callback: 回调函数
         """
         self._client.listen_to_notifications(
@@ -44,12 +46,14 @@ class aria2c:
         )
         self._client.stop_listening()
        
-    def crm_file(self,api,gid):
-        """
-        [回调函数]:
-            将文件/文件夹移动至指定位置,并移除源文件
+    def crm_file(
+        self,
+        api,
+        gid
+        ):
+        """[回调函数]:将文件/文件夹移动至指定位置,并移除源文件
         
-        Arguments:
+        Args:
             api: 指定远程服务器地址
             gid: 下载任务gid
         """
@@ -66,5 +70,5 @@ class aria2c:
             logging.error(f"回调错误:远程aria2连接失败,请检查密码是否正确")
 
 if __name__ == "__main__": 
-    A2C = aria2c(6800,secret=None)
+    A2C = aria2c(6800)
     A2C.when_dl_compelete(A2C.crm_file)
