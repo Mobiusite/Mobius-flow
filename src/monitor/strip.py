@@ -21,7 +21,7 @@ class streamrip :
         需要额外安装Streamrip
 
         Args:
-            download_dir (str): 新的指定储存路径
+            download_dir (str): 指定储存路径
         """
         if os.path.isfile(self.CONFIG_PATH):
             self.change_dir(
@@ -53,5 +53,6 @@ class streamrip :
             with open(self.CONFIG_PATH,'w') as w_cfg:
                 w_cfg.write(tomlkit.dumps(streamrip_cfg))
                     
-st =streamrip()
-st.checkout(download_dir="/home/root")
+if __name__  ==  '__main__':
+    st =streamrip()
+    st.checkout(download_dir="/home/root")
