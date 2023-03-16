@@ -46,12 +46,12 @@ class streamrip :
         """
         with open(self.CONFIG_PATH) as r_cfg:
             streamrip_cfg = tomlkit.loads(r_cfg.read().strip())
-            download_dict = streamrip_cfg['downloads']
-            assert isinstance(download_dict, dict)
-        if download_dict['folder'] != change_download_dir:
-            download_dict['folder'] = change_download_dir
-            with open(self.CONFIG_PATH,'w') as w_cfg:
-                w_cfg.write(tomlkit.dumps(streamrip_cfg))
+        download_dict = streamrip_cfg['downloads']
+        if isinstance(download_dict, dict):
+            if download_dict['folder'] != change_download_dir:
+                download_dict['folder'] = change_download_dir
+                with open(self.CONFIG_PATH,'w') as w_cfg:
+                    w_cfg.write(tomlkit.dumps(streamrip_cfg))
                     
 if __name__  ==  '__main__':
     st =streamrip()

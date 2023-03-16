@@ -130,3 +130,8 @@ dmypy.json
 
 # vscode config
 .vscode
+zip/
+7z/
+tar/
+targz/
+E_targz/
