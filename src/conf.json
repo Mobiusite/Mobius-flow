@@ -1,7 +1,7 @@
 {
     "logs":{
         "log_dir":"$YOUR/PATH/TO/LOGFILE",
-        "log_level": "Error"
+        "log_level": "default"
     },
     "files":{
         "qb": {

@@ -4,25 +4,26 @@ import shelve
 import logging
 import hashlib
 from deepdiff import DeepDiff
-from defaultlist import defaultlist
 
 class compress:
-    # TODO 增加多压缩类
+    # TODO 增加多类压缩
     def check_out(
         self,
         dir_path:str,
         format:str
-        ):
-        # TODO 适配多压缩类
-        """初始化并检查目标文件夹
+    ):
+        # TODO 适配多类压缩
+        # TODO 适配解压操作
+        """初始化并检查目标文件夹是否发生变化,并根据压缩格式进行压缩/解压
 
         Args:
             dir_path (str): 目标文件夹
             format (str): 压缩格式
         """
+        self.raw_dir_path = dir_path
         try:
-            if format not in ['zip','7z','tar','targz','E_targz']:
-                raise ValueError("format必须是以下'zip','7z','tar','targz','E_targz'值中的一个")
+            if format not in ['rar','zip','7z','tar','targz','E_targz']:
+                raise ValueError("format必须是以下'rar','zip','7z','tar','targz','E_targz'值中的一个")
             else:
                 self.SNAPSHOT_PATH = os.path.join(os.path.dirname(__file__), format)
                 self.SNAPSHOT_FILE = os.path.join(self.SNAPSHOT_PATH, "snapshot")
@@ -30,20 +31,31 @@ class compress:
             raw_dict = self.get_dirdict(dir_path)
             if raw_dict:
                 if self.diffsnapshot(raw_dict):
-                    print('compress!')
+                    dif_list = self.diffsnapshot(raw_dict)
+                    for item in dif_list:
+                        if format in ['zip','7z','tar','E_targz']:
+                            if re.search(r'\.zip\.$', item):
+                                self.subdir_name
+                            if re.search(r'\.7z$', item):
+                                self.subdir_name
+                            if re.search(r'\.tar$', item):
+                                self.subdir_name
+                        if format == 'targz':
+                            if re.search(r'\.tar\.gz$', item):
+                                self.subdir_name
                 else:
-                    print('waiting')
+                    logging.info('快照对比无变化,等待下一次checkout')
                 self.snapshot(raw_dict)
         except FileNotFoundError:
             logging.error(f'file not find!')
         except ValueError:
-            logging.error(f'format必须是以下zip,7z,tar,targz,E_targz值中的一个')
+            logging.error(f'format必须是以下rar,zip,7z,tar,targz,E_targz值中的一个')
             
     def snapshot(
         self,
         snapshot:dict={}
-        ):
-        """初始化快照并将快照持久化至snapshot文件中.
+    ):
+        """初始化快照并将字典快照持久化至snapshot文件中.
         
         如果快照不存在且无对应key值则进行首次初始化,若snapshot输入空值且文件存在且包含key值,则跳过初始化.
 
@@ -71,42 +83,52 @@ class compress:
     def diffsnapshot(
         self,
         diff_snapshot:dict
-        ):
-        # TODO 检查目录下的子文件夹是否一致?
+    ):
+        """对比原快照字典和现行文件目录所扫描的字典,如果原快照字典为空则直接返回现行字典,否则进行对比.
+
+        Args:
+            diff_snapshot (dict): 现行文件目录所扫描的字典
+
+        Returns:
+            list: 一个列表,其中包含文件路径和子目录路径
+        """
         raw_snapshot = shelve.open(filename=self.SNAPSHOT_FILE,writeback=True)
+        file_diff_list = []
+        subdir_diff_list = []
         if raw_snapshot['snapshot']:
-            file_diff = set(
-                diff_snapshot['file'].items()).difference(
-                    set(raw_snapshot['snapshot']['file'].items())
-                )
+            self.file_diff = DeepDiff(
+                raw_snapshot['snapshot'],
+                diff_snapshot,
+                exclude_paths="root['dir']"
+            ).to_dict()
             self.subdir_diff = DeepDiff(
                 raw_snapshot['snapshot'], 
                 diff_snapshot,
                 exclude_paths="root['file']"
             ).to_dict()
             raw_snapshot.close()
-            file_diff_list = []
-            subdir_diff_list = []
-            if file_diff:
-                file_diff_list = list(file_diff)
-            elif self.subdir_diff:
-                origin_subdir_name_list = []
-                origin_subdir_name_list.append(self.get_subdir_name_list('dictionary_item_added'))
-                origin_subdir_name_list.append(self.get_subdir_name_list('values_changed'))
-                origin_subdir_name_list.append(self.get_subdir_name_list('iterable_item_added'))
-                origin_subdir_name_list.append(self.get_subdir_name_list('iterable_item_removed'))
-                subdir_diff_list = list(set(origin_subdir_name_list))
-            return file_diff_list + subdir_diff_list
+            if self.file_diff:
+                origin_file_path_list = []
+                for type in ['dictionary_item_added','values_changed']:
+                    origin_file_path_list.extend(self.get_file_path_list(type))
+                file_diff_list = list(set(origin_file_path_list))
+            if self.subdir_diff:
+                origin_subdir_path_list = []
+                for type in ['dictionary_item_added','values_changed','iterable_item_added','iterable_item_removed']:
+                    origin_subdir_path_list.extend(self.get_subdir_path_list(type))
+                subdir_diff_list = list(set(origin_subdir_path_list))
         else:
             file_diff_list = list(diff_snapshot['file'])
-            subdir_diff_list = list(diff_snapshot['dir'])
+            for self.subdir_name in list(diff_snapshot['dir']):
+                subdir_path = os.path.join(self.raw_dir_path,self.subdir_name)
+                subdir_diff_list.append(subdir_path)
             raw_snapshot.close()
-            return file_diff_list + subdir_diff_list
+        return file_diff_list + subdir_diff_list
 
     def get_md5(
         self,
         dir_path:str
-        ):
+    ):
         """或者指定文件的MD5码
 
         Args:
@@ -132,7 +154,7 @@ class compress:
     def rm_errordir(
         self,
         remove_dir:str
-        ):
+    ):
         """删除目标文件夹及其内部所有文件与文件夹
 
         Args:
@@ -152,8 +174,8 @@ class compress:
     def get_dirdict(
         self,
         dir_path:str
-        ):
-        """遍历目录并生成格式为字典的快照
+    ):
+        """遍历文件目录并序列化为字典
 
         Args:
             dir_path (str): 要遍历的路径
@@ -188,28 +210,74 @@ class compress:
                     dir_dict['file'][file_path] = file_md5
         return dict(dir_dict)
     
-    def get_subdir_name_list(
+    def get_subdir_path_list(
         self,
         return_type:str
-        ):
+    ) -> list:
+        """返回一个包含发生变化的子目录路径的列表
+
+        Args:
+            return_type (str): 目标类型
+
+        Raises:
+            ValueError: 输入的目标类型不符合标准
+
+        Returns:
+            list: 返回一个列表,包含发生变化的子目录路径.若无,则返回一个空列表.
+        """
+        subdir_path_list = []
         try:
             if return_type not in [
                 'dictionary_item_added',
                 'values_changed',
                 'iterable_item_added',
-                'iterable_item_removed']:
+                'iterable_item_removed'
+            ]:
                 raise ValueError("return_type必须是以下'dictionary_item_added','values_changed','iterable_item_added','iterable_item_removed'值中的一个")
             else:
-                subdir_name_list = []
-                if self.subdir_diff[return_type]:
+                if return_type in self.subdir_diff:
                     for subdir_path_re in self.subdir_diff[return_type]:
                         subdir_name_re = re.search(r"root\['dir'\]\['(.*?)'\]", subdir_path_re)
                         if subdir_name_re:
-                            subdir_name = subdir_name_re.group(1)
-                            subdir_name_list.append(subdir_name)
-                return subdir_name_list
+                            self.subdir_name = subdir_name_re.group(1)
+                            subdir_path = os.path.join(self.raw_dir_path,self.subdir_name)
+                            subdir_path_list.append(subdir_path)
         except ValueError:
             logging.error(f'return_type必须是以下dictionary_item_added,values_changed,iterable_item_added,iterable_item_removed值中的一个')
+        return subdir_path_list
+    
+    def get_file_path_list(
+        self,
+        return_type:str
+    ) -> list:
+        """返回一个包含发生变化的文件路径的列表
+
+        Args:
+            return_type (str): 目标类型
+
+        Raises:
+            ValueError: 输入的目标类型不符合标准
+
+        Returns:
+            list: 返回一个列表,包含发生变化的文件路径.若无,则返回一个空列表.
+        """
+        file_path_list = []
+        try:
+            if return_type not in [
+                'dictionary_item_added',
+                'values_changed'
+            ]:
+                raise ValueError("return_type必须是以下'dictionary_item_added','values_changed'值中的一个")
+            else:
+                if return_type in self.file_diff:
+                    for file_path_re in self.file_diff[return_type]:
+                        file_path_group = re.search(r"root\['file'\]\['(.*?)'\]", file_path_re)
+                        if file_path_group:
+                            file_path = file_path_group.group(1)
+                            file_path_list.append(file_path)
+        except ValueError:
+            logging.error(f'return_type必须是以下dictionary_item_added,values_changed值中的一个')
+        return file_path_list
  
 if __name__ == "__main__":
     zip = compress()
